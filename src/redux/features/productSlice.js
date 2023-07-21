@@ -79,6 +79,18 @@ export const updateProduct = createAsyncThunk(
   }
 );
 
+export const searchProducts = createAsyncThunk(
+  "product/searchProducts",
+  async (searchQuery, { rejectWithValue }) => {
+    try {
+      const response = await api.getProductsBySearch(searchQuery);
+      return response.data;
+    } catch (error) {
+      return rejectWithValue(error.response.data);
+    }
+  }
+);
+
 const productSlice = createSlice({
   name: "product",
   initialState: {
@@ -169,6 +181,17 @@ const productSlice = createSlice({
       }
     },
     [updateProduct.rejected]: (state, action) => {
+      state.loading = false;
+      state.error = action.payload.message;
+    },
+    [searchProducts.pending]: (state, action) => {
+      state.loading = true;
+    },
+    [searchProducts.fulfilled]: (state, action) => {
+      state.loading = false;
+      state.products = action.payload;
+    },
+    [searchProducts.rejected]: (state, action) => {
       state.loading = false;
       state.error = action.payload.message;
     },

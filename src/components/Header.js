@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import {
   MDBNavbar,
   MDBContainer,
@@ -12,14 +12,40 @@ import {
 } from "mdb-react-ui-kit";
 import { useSelector, useDispatch } from "react-redux";
 import { setLogout } from "../redux/features/authSlice";
+import { searchProducts } from "../redux/features/productSlice";
+import { useNavigate } from "react-router-dom";
 
 function Header() {
   const [show, setshow] = useState(false);
+  const [search, setSearch] = useState("");
   const dispatch = useDispatch();
+  const navigate = useNavigate();
   const { user } = useSelector((state) => ({ ...state.auth }));
+
+  // Debounce function to delay the search action by 1 second
+  const debounce = (func, delay) => {
+    let timeoutId;
+    return function (...args) {
+      clearTimeout(timeoutId);
+      timeoutId = setTimeout(() => func.apply(this, args), delay);
+    };
+  };
+
   const handleLogout = () => {
     dispatch(setLogout());
   };
+
+  const handleSearch = (e) => {
+    e.preventDefault();
+    if (search) {
+      dispatch(searchProducts(search));
+      navigate(`/product/search?searchQuery=${search}`);
+      setSearch("")
+    } else {
+      navigate("/");
+    }
+  };
+
   return (
     <div>
       <MDBNavbar fixed="top" expand="lg" style={{ backgroundColor: "#f0e6ea" }}>
@@ -28,7 +54,7 @@ function Header() {
             href="/"
             style={{ color: "#606080", fontWeight: "600", fontSize: "22px" }}
           >
-            Design & designers
+            DesignPedia
           </MDBNavbarBrand>
           <MDBNavbarToggler
             type="button"
@@ -42,9 +68,14 @@ function Header() {
             <MDBNavbarNav right fullWidth={false} className="mb-2 mb-lg-0">
               {user?.result?._id && (
                 <>
-                  <h5 style={{ marginRight: "30px", marginTop: "15px" }}>
-                    {" "}
-                    Your are logged in as : {user?.result?.name}{" "}
+                  <h5
+                    style={{
+                      marginRight: "300px",
+                      marginTop: "28px",
+                      fontSize: "17px",
+                    }}
+                  >
+                    Welcome, {user?.result?.name}.
                   </h5>
                 </>
               )}
@@ -89,6 +120,23 @@ function Header() {
                 </>
               )}
             </MDBNavbarNav>
+            <form className="d-flex input-group w-auto" onSubmit={handleSearch}>
+              <input
+                type="search"
+                class="form-control rounded"
+                placeholder="Search products"
+                aria-label="Search"
+                aria-describedby="search-addon"
+                value={search}
+                onChange={(e) => setSearch(e.target.value)}
+              />
+              <span
+                class="input-group-text text-white border-0"
+                id="search-addon"
+              >
+                <i class="fas fa-search"></i>
+              </span>
+            </form>
           </MDBCollapse>
         </MDBContainer>
       </MDBNavbar>
